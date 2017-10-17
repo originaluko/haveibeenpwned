@@ -58,13 +58,18 @@ function Get-PwnedPasteAccount
                     Write-Error -Message 'Forbidden - no user agent has been specified in the request.'
                 }
                 'The remote server returned an error: (404) Not Found.' {
-                    Write-Output  'Email address not found.'
+                     $Response = New-Object PSObject -Property @{
+                        'Account Exists' = 'False'
+                        'Status' = 'Good'
+                        'Description' = 'Email address not found.'
+                    }
                 }
                 'The remote server returned an error: (429) Too Many Requests.' {
                     Write-Error -Message 'Too many requests - the rate limit has been exceeded.'
                 }
             }
-            break
+            $Response
+            Return
         }
         $Request 
     }
