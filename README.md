@@ -24,7 +24,6 @@ Module can be installed from the PowerShellGalley (requires PowerShell 5+)
 3. Run `Set-ExecutionPolicy` using the parameter `RemoteSigned` or `Bypass`.
 4. Import the Module
 
-Execute the test using function `Start-SpeedTest`.
 
 # Usage Instructions
 
@@ -32,7 +31,7 @@ There is no special usage to run this module
 
 # Future
 
-Improve error
+Improve error handling
 
 # Issues
 
