@@ -102,7 +102,7 @@ function Get-PwnedPassword
             $suffix = $SHA1.SubString(5,35) + ":"
             $found = $request.split('') | select-string "$suffix" | out-string
             if ($found) {
-                $cnt = $found.SubString(38,10) 
+                $cnt = (($found.split(':'))[1]).trim()
                 Write-Warning  "Password pwned $cnt times!"
             } else {
                 Write-Output  'Password not found.'
