@@ -1,4 +1,4 @@
-﻿#Requires -Version 3
+#Requires -Version 3
 function Get-PwnedPassword 
 {
     <#
@@ -28,6 +28,11 @@ function Get-PwnedPassword
             Get-PwnedPassword -SecureString $Password
             Identifies if the password, in the SecureString variable $Password, has been found
 
+            .EXAMPLE 
+            $password = ConvertTo-SecureString "monkey" -asplaintext -force
+            get-pwnedpassword -SecureString $password
+            Identifies if the password, in the SecureString variable $Password, has been found
+            
             .INPUTS
             None
  
@@ -52,40 +57,55 @@ function Get-PwnedPassword
         [SecureString]$SecureString,
         
         [Parameter(Mandatory, ParameterSetName = 'SHA1')]
+        [ValidatePattern('^[0-9A-F]{40}$')]
         [string]$SHA1
     )
 
 
     Begin
     {
+
+        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+        $baseuri = "https://api.pwnedpasswords.com/range/"
+        function Hash($textToHash)
+        {      
+            $hasher = new-object -TypeName "System.Security.Cryptography.SHA1CryptoServiceProvider"
+            $toHash = [System.Text.Encoding]::UTF8.GetBytes($textToHash)
+            $bytes = $hasher.ComputeHash($toHash)
+            $res = ($bytes|ForEach-Object ToString X2) -join ''
+            $res
+        }
+      
+    }
+    Process
+    {
+
         Switch ($PSCmdlet.ParameterSetName) {
             'Password' {
-                $URI = "https://haveibeenpwned.com/api/v2/pwnedpassword/$Password"
+                $SHA1 = Hash($Password)
+                write-host $SHA1                
                 break
             }
             'SecureString' {
                 $Password = (New-Object PSCredential "user", $SecureString).GetNetworkCredential().Password
-                $URI = "https://haveibeenpwned.com/api/v2/pwnedpassword"
-                $body = "Password=$Password"
+                $SHA1 = Hash($Password)
                 break
             }
             'SHA1' {
-                $URI = "https://haveibeenpwned.com/api/v2/pwnedpassword/$SHA1"
                 break
             }
         }
-       
-    }
-    Process
-    {
-        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+        $URI = $baseuri + $SHA1.SubString(0,5)
         try
         {
-            if ($PSCmdlet.ParameterSetName -eq 'SecureString') {
-                Invoke-RestMethod -Uri $uri -Method Post -Body $body
-            } 
-            else {
-                $Request = Invoke-RestMethod -Uri $URI
+            $Request = Invoke-RestMethod -Uri $URI
+            $suffix = $SHA1.SubString(5,35) + ":"
+            $found = $request.split('') | select-string "$suffix" | out-string
+            if ($found) {
+                $cnt = (($found.split(':'))[1]).trim()
+                Write-Warning  "Password pwned $cnt times!"
+            } else {
+                Write-Output  'Password not found.'
             }
         }
          catch [System.Net.WebException] {
@@ -105,6 +125,5 @@ function Get-PwnedPassword
             }
             break
         }
-        Write-Warning  'Password pwned!' 
     }
 }
