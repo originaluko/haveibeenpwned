@@ -32,10 +32,11 @@ There is no special usage to run this module
 # Future
 
 Improve error handling
+PowerShell Core support
 
 # Issues
 
- 
+
 
 # Licensing
 
