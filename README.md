@@ -7,7 +7,7 @@ Identify pwned accounts and passwords via the "Have I been pwned?" (https://have
 
 At a minimum, make sure you have installed the following:
 
-1. PowerShell version 3+
+1. Windows PowerShell 3+ or PowerShell Core
 2. (optional) [Windows Management Framework 5.0](https://www.microsoft.com/en-us/download/details.aspx?id=50395)
 
 # Installation & Execution
@@ -32,7 +32,6 @@ There is no special usage to run this module
 # Future
 
 Improve error handling
-PowerShell Core support
 
 # Issues
 

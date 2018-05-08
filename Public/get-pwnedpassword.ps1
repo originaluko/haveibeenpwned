@@ -100,7 +100,7 @@ function Get-PwnedPassword
         {
             $Request = Invoke-RestMethod -Uri $URI
             $suffix = $SHA1.SubString(5,35) + ":"
-            $found = $request.split('') | select-string "$suffix" | out-string
+            $found = $request.split() | select-string "$suffix" | out-string
             if ($found) {
                 $cnt = (($found.split(':'))[1]).trim()
                 Write-Warning  "Password pwned $cnt times!"
