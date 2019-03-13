@@ -37,7 +37,9 @@ Function Get-PwnedAccount
     [OutputType([object])]
     Param (
         [Parameter(Mandatory)]
-        [ValidatePattern('(\w+@[]a-zA-Z_]+?\.[a-zA-Z]{2,6})')]
+        [ValidateScript({
+            New-Object -TypeName System.Net.Mail.MailAddress -ArgumentList @($_)
+        })]
         [string]$EmailAddress,
 
         [ValidatePattern('\w')]
@@ -52,6 +54,12 @@ Function Get-PwnedAccount
     Process
     {
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+        
+        # Parse the email address with .Net framework type and get the address part out, 
+        # e.g. ignoring the display name in '"bob" <bob@example.com>'
+        # and returning 'bob@example.com'
+	    $EmailAddress = (New-Object -TypeName System.Net.Mail.MailAddress -ArgumentList @($EmailAddress)).Address
+
         try
         {
             $Request = Invoke-RestMethod -Uri $URI -UserAgent $UserAgent
