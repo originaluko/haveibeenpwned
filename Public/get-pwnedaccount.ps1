@@ -46,7 +46,7 @@ Function Get-PwnedAccount {
         [string]$EmailAddress,
 
         [Parameter(Mandatory, ParameterSetName = 'csv')]
-        [System.IO.FileInfo]$csv,
+        [System.IO.FileInfo]$CSV,
 
         [ValidatePattern('\w')]
         [string]$UserAgent = “HaveIBeenPwned Powershell Module”
@@ -114,7 +114,7 @@ Function Get-PwnedAccount {
                 $request
             }
             'csv' {
-                $csvImport = Import-Csv -Path $csv -Header "Accounts"
+                $csvImport = Import-Csv -Path $CSV -Header "Accounts"
                 foreach ($email in $csvImport) {
                     try { 
                         
