@@ -1,6 +1,5 @@
 #Requires -Version 3
-function Get-PwnedPassword 
-{
+function Get-PwnedPassword {
     <#
             .SYNOPSIS
             Report if an password has been found via the https://haveibeenpwned.com API service.
@@ -12,8 +11,9 @@ function Get-PwnedPassword
             and reports whether the specified password has been found (pwned).  The password can be in 
             clear text, a SHA1 hash, or a secure string.
             
-            Note that if a secure string is used it has to be retrieved and then passed in the body
-            of the https request.  Use this if you don't want to type a password in clear text at the CLI.
+            Note that as of the v2 API, passwords are never sent encrypted or otherwise over the internet.
+            Passwords, encrypted or cleartext, are SHA1 hashed and only the first 5 characters posted
+            back to https://haveibeenpwned.com
 
             .EXAMPLE
             Get-PwnedPassword -Password monkey
@@ -62,23 +62,20 @@ function Get-PwnedPassword
     )
 
 
-    Begin
-    {
+    Begin {
 
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        $baseuri = "https://api.pwnedpasswords.com/range/"
-        function Hash($textToHash)
-        {      
-            $hasher = new-object -TypeName "System.Security.Cryptography.SHA1CryptoServiceProvider"
+        $baseURI = "https://api.pwnedpasswords.com/range/"
+        function Hash($textToHash) {      
+            $hasher = New-Object -TypeName "System.Security.Cryptography.SHA1CryptoServiceProvider"
             $toHash = [System.Text.Encoding]::UTF8.GetBytes($textToHash)
             $bytes = $hasher.ComputeHash($toHash)
-            $res = ($bytes|ForEach-Object ToString X2) -join ''
+            $res = ($bytes | ForEach-Object ToString X2) -join ''
             $res
         }
-      
     }
-    Process
-    {
+    
+    Process {
 
         Switch ($PSCmdlet.ParameterSetName) {
             'Password' {
@@ -95,33 +92,49 @@ function Get-PwnedPassword
                 break
             }
         }
-        $URI = $baseuri + $SHA1.SubString(0,5)
-        try
-        {
+        $URI = $baseURI + $SHA1.SubString(0, 5)
+        try {
             $Request = Invoke-RestMethod -Uri $URI
-            $suffix = $SHA1.SubString(5,35) + ":"
+            $suffix = $SHA1.SubString(5, 35) + ":"
             $found = $request.split() | select-string "$suffix" | out-string
             if ($found) {
                 $cnt = (($found.split(':'))[1]).trim()
                 Write-Warning  "Password pwned $cnt times!"
-            } else {
+            }
+            else {
                 Write-Output  'Password not found.'
             }
         }
-         catch [System.Net.WebException] {
-            Switch ($_.Exception.Message) {
-                'The remote server returned an error: (400) Bad Request.' {
-                    Write-Error -Message 'Bad Request - the account does not comply with an acceptable format.'
+        catch {
+            $errorDetails = $null
+            $response = $_.Exception | Select-Object -ExpandProperty 'message' -ErrorAction Ignore
+            if ($response) {
+                $errorDetails = $_.ErrorDetails
+            }
+                
+            if ($null -eq $errorDetails) {
+                Switch ($response) {
+                    'The remote server returned an error: (400) Bad Request.' {
+                        Write-Error -Message 'Bad Request - the account does not comply with an acceptable format.'
+                    }
+                    'The remote server returned an error: (403) Forbidden.' {
+                        Write-Error -Message 'Forbidden - no user agent has been specified in the request.'
+                    }
+                    # Windows PowerShell 404 response
+                    'The remote server returned an error: (404) Not Found.' {
+                        Write-Output  'Password not found.'
+                    }
+                    # PowerShell Core 404 response
+                    'Response status code does not indicate success: 404 (Not Found).' {
+                        Write-Output  'Password not found.'
+                    }
+                    'The remote server returned an error: (429) Too Many Requests.' {
+                        Write-Error -Message 'Too many requests - the rate limit has been exceeded.'
+                    }
                 }
-                'The remote server returned an error: (403) Forbidden.' {
-                    Write-Error -Message 'Forbidden - no user agent has been specified in the request.'
-                }
-                'The remote server returned an error: (404) Not Found.' {
-                    Write-Output  'Password not found.'
-                }
-                'The remote server returned an error: (429) Too Many Requests.' {
-                    Write-Error -Message 'Too many requests - the rate limit has been exceeded.'
-                }
+            }
+            else {
+                Write-error -Message ('Request to "{0}" failed: {1}' -f $uri, $errorDetails)
             }
             break
         }

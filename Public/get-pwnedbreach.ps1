@@ -1,6 +1,5 @@
 ﻿#Requires -Version 3
-Function Get-PwnedBreach
-{
+Function Get-PwnedBreach {
     <#
             .SYNOPSIS
             Report breached sites via the https://haveibeenpwned.com API service.
@@ -30,33 +29,48 @@ Function Get-PwnedBreach
 
     #>
     
-    Begin
-    {
+    Begin {
+        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
         $URI = 'https://haveibeenpwned.com/api/v2/breaches'
     }
-    Process
-    {
-        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        try
-        {
+    
+    Process {
+
+        try {
             $Request = Invoke-RestMethod -Uri $URI
         }
-         Catch [System.Net.WebException] {
-            Switch ($_.Exception.Message) {
-                'The remote server returned an error: (400) Bad Request.' {
-                    Write-Error -Message 'Bad Request.'
-                }
-                'The remote server returned an error: (403) Forbidden.' {
-                    Write-Error -Message 'Forbidden - no user agent has been specified in the request.'
-                }
-                'The remote server returned an error: (404) Not Found.' {
-                    Write-Output  'Not Found - No breach results found.'
-                }
-                'The remote server returned an error: (429) Too Many Requests.' {
-                    Write-Error -Message 'Too many requests - the rate limit has been exceeded.'
+        catch {
+            $errorDetails = $null
+            $response = $_.Exception | Select-Object -ExpandProperty 'message' -ErrorAction Ignore
+            if ($response) {
+                $errorDetails = $_.ErrorDetails
+            }
+                
+            if ($null -eq $errorDetails) {
+                Switch ($response) {
+                    'The remote server returned an error: (400) Bad Request.' {
+                        Write-Error -Message 'Bad Request - the account does not comply with an acceptable format.'
+                    }
+                    'The remote server returned an error: (403) Forbidden.' {
+                        Write-Error -Message 'Forbidden - no user agent has been specified in the request.'
+                    }
+                    # Windows PowerShell 404 response
+                    'The remote server returned an error: (404) Not Found.' {
+                        Write-Output  'Not Found - No breach results found.'
+                    }
+                    # PowerShell Core 404 response
+                    'Response status code does not indicate success: 404 (Not Found).' {
+                        Write-Output  'Not Found - No breach results found.'
+                    }
+                    'The remote server returned an error: (429) Too Many Requests.' {
+                        Write-Error -Message 'Too many requests - the rate limit has been exceeded.'
+                    }
                 }
             }
-            Break
+            else {
+                Write-error -Message ('Request to "{0}" failed: {1}' -f $uri, $errorDetails)
+            }
+            break
         }
         $Request 
     }

@@ -1,6 +1,5 @@
 ﻿#Requires -Version 3
-function Get-PwnedPasteAccount
-{
+function Get-PwnedPasteAccount {
     <#
             .SYNOPSIS
             Report all pastes of an account via the https://haveibeenpwned.com API service.
@@ -33,40 +32,62 @@ function Get-PwnedPasteAccount
     [OutputType([object])]
     param (
         [Parameter(Mandatory)]
-        [ValidatePattern('(\w+@[]a-zA-Z_]+?\.[a-zA-Z]{2,6})')]
+        [ValidateScript( {
+            New-Object -TypeName System.Net.Mail.MailAddress -ArgumentList @($_)
+        })]
         [string]$EmailAddress
     )
 
 
-    Begin
-    {
-        $URI = "https://haveibeenpwned.com/api/v2/pasteaccount/$EmailAddress"
-    }
-    Process
-    {
+    Begin {
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        try
-        {
+        $URI = "https://haveibeenpwned.com/api/v2/pasteaccount/$EmailAddress"
+        $EmailAddress = (New-Object -TypeName System.Net.Mail.MailAddress -ArgumentList @($EmailAddress)).Address
+    }
+    
+    Process {
+
+        try {
             $Request = Invoke-RestMethod -Uri $URI
         }
-         catch [System.Net.WebException] {
-            Switch ($_.Exception.Message) {
-                'The remote server returned an error: (400) Bad Request.' {
-                    Write-Error -Message 'Bad Request - the account does not comply with an acceptable format.'
-                }
-                'The remote server returned an error: (403) Forbidden.' {
-                    Write-Error -Message 'Forbidden - no user agent has been specified in the request.'
-                }
-                'The remote server returned an error: (404) Not Found.' {
-                     $Response = New-Object PSObject -Property @{
-                        'Account Exists' = 'False'
-                        'Status' = 'Good'
-                        'Description' = 'Email address not found.'
+        catch {
+            $errorDetails = $null
+            $response = $_.Exception | Select-Object -ExpandProperty 'message' -ErrorAction Ignore
+            if ($response) {
+                $errorDetails = $_.ErrorDetails
+            }
+                
+            if ($null -eq $errorDetails) {
+                Switch ($response) {
+                    'The remote server returned an error: (400) Bad Request.' {
+                        Write-Error -Message 'Bad Request - the account does not comply with an acceptable format.'
+                    }
+                    'The remote server returned an error: (403) Forbidden.' {
+                        Write-Error -Message 'Forbidden - no user agent has been specified in the request.'
+                    }
+                    # Windows PowerShell 404 response
+                    'The remote server returned an error: (404) Not Found.' {
+                        $Response = New-Object PSObject -Property @{
+                            'Account Exists' = 'False'
+                            'Status'         = 'Good'
+                            'Description'    = 'Email address not found.'
+                        }
+                    }
+                    # PowerShell Core 404 response
+                    'Response status code does not indicate success: 404 (Not Found).' {
+                        $Response = New-Object PSObject -Property @{
+                            'Account Exists' = 'False'
+                            'Status'         = 'Good'
+                            'Description'    = 'Email address not found.'
+                        }
+                    }
+                    'The remote server returned an error: (429) Too Many Requests.' {
+                        Write-Error -Message 'Too many requests - the rate limit has been exceeded.'
                     }
                 }
-                'The remote server returned an error: (429) Too Many Requests.' {
-                    Write-Error -Message 'Too many requests - the rate limit has been exceeded.'
-                }
+            }
+            else {
+                Write-error -Message ('Request to "{0}" failed: {1}' -f $uri, $errorDetails)
             }
             $Response
             Return
