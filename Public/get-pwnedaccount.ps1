@@ -39,7 +39,7 @@ Function Get-PwnedAccount {
     [CmdletBinding()]
     [OutputType([object])]
     Param (
-        [Parameter(Mandatory, ParameterSetName = 'email')]
+        [Parameter(Mandatory, ValueFromPipeline=$true, ParameterSetName = 'email')]
         [ValidateScript( {
                 New-Object -TypeName System.Net.Mail.MailAddress -ArgumentList @($_)
             })]
@@ -134,7 +134,7 @@ Function Get-PwnedAccount {
                     catch {
                         $errorDetails = $null
                         $response = $_.Exception | Select-Object -ExpandProperty 'message' -ErrorAction Ignore
-                        if ( $response ) {
+                        if ($response) {
                             $errorDetails = $_.ErrorDetails
                         }
                     

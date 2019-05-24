@@ -30,24 +30,24 @@ function Get-PwnedPasteAccount {
     
     [CmdletBinding()]
     [OutputType([object])]
-    param (
-        [Parameter(Mandatory)]
+    Param (
+        [Parameter(Mandatory, ValueFromPipeline=$true)]
         [ValidateScript( {
-            New-Object -TypeName System.Net.Mail.MailAddress -ArgumentList @($_)
-        })]
+                New-Object -TypeName System.Net.Mail.MailAddress -ArgumentList @($_)
+            })]
         [string]$EmailAddress
     )
 
 
     Begin {
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        $URI = "https://haveibeenpwned.com/api/v2/pasteaccount/$EmailAddress"
-        $EmailAddress = (New-Object -TypeName System.Net.Mail.MailAddress -ArgumentList @($EmailAddress)).Address
     }
     
     Process {
 
         try {
+            $EmailAddress = (New-Object -TypeName System.Net.Mail.MailAddress -ArgumentList @($EmailAddress)).Address
+            $URI = "https://haveibeenpwned.com/api/v2/pasteaccount/$EmailAddress"
             $Request = Invoke-RestMethod -Uri $URI
         }
         catch {
