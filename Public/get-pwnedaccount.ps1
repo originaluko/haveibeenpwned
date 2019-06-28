@@ -36,10 +36,10 @@ Function Get-PwnedAccount {
 
     #>
     
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName = 'email')]
     [OutputType([object])]
     Param (
-        [Parameter(Mandatory, ValueFromPipeline=$true, ParameterSetName = 'email')]
+        [Parameter(Mandatory, ValueFromPipeline=$true, ValueFromPipelineByPropertyName, ParameterSetName = 'email', Position=0)]
         [ValidateScript( {
                 New-Object -TypeName System.Net.Mail.MailAddress -ArgumentList @($_)
             })]

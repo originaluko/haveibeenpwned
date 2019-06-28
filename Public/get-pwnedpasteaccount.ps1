@@ -31,7 +31,7 @@ function Get-PwnedPasteAccount {
     [CmdletBinding()]
     [OutputType([object])]
     Param (
-        [Parameter(Mandatory, ValueFromPipeline=$true)]
+        [Parameter(Mandatory, ValueFromPipeline=$true, ValueFromPipelineByPropertyName)]
         [ValidateScript( {
                 New-Object -TypeName System.Net.Mail.MailAddress -ArgumentList @($_)
             })]
