@@ -3,7 +3,7 @@ Function Get-PwnedAccount {
     <#
             .SYNOPSIS
             Report if an account has been breached via the https://haveibeenpwned.com API service.
- 
+
             .DESCRIPTION
             Report if an account has been breached via the https://haveibeenpwned.com API service.
 
@@ -11,20 +11,24 @@ Function Get-PwnedAccount {
             and reports whether the account (email address / username) specified has been found (pwned). 
 
             .EXAMPLE
-            Get-PwnedAccount -EmailAdddress email@domain.com
+            Get-PwnedAccount -EmailAdddress email@domain.com -apiKey "hibp-api-key"
             Retuns all accounts that have been pwned via the supplied email address / username.
 
             .EXAMPLE
-            Get-PwnedAccount -EmailAdddress email@domain.com -UserAgent "My User Agent"
+            Get-PwnedAccount -EmailAdddress email@domain.com -apiKey "hibp-api-key" -UserAgent "My User Agent" 
             Same as Example 1 but specifies a custom User Agent String.
 
             .EXAMPLE
-            Get-PwnedAccount -csv c:\temp\emailaddress.csv 
+            Get-PwnedAccount -EmailAdddress email@domain.com -apiKey "hibp-api-key" -truncateResponse true 
+            Truncates the response to the name of the breach only (true).  Default is false
+
+            .EXAMPLE
+            Get-PwnedAccount -csv c:\temp\emailaddress.csv -apiKey "hibp-api-key"
             Imports a list of email addresses in csv format.  Each email address being a seperate row.
 
             .INPUTS
             None
- 
+
             .NOTES
             Author:  Mark Ukotic
             Website: http://blog.ukotic.net
@@ -49,15 +53,23 @@ Function Get-PwnedAccount {
         [System.IO.FileInfo]$CSV,
 
         [ValidatePattern('\w')]
-        [string]$UserAgent = “HaveIBeenPwned Powershell Module”
+        [string]$UserAgent = "HaveIBeenPwned Powershell Module",
+
+        [ValidatePattern('\w')]
+        [string]$truncateResponse = "false",
+
+        [ValidatePattern('\w')]
+        [string]$apiKey
     )
 
     Begin {
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+        $headers = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
+        $headers.Add("hibp-api-key", $apiKey)
     }
 
     Process {
-       
+
         Switch ($PSCmdlet.ParameterSetName) {
             'email' {
                 try {
@@ -65,8 +77,8 @@ Function Get-PwnedAccount {
                     # e.g. ignoring the display name in '"bob" <bob@example.com>'
                     # and returning 'bob@example.com'
                     $EmailAddress = (New-Object -TypeName System.Net.Mail.MailAddress -ArgumentList @($EmailAddress)).Address
-                    $URI = "https://haveibeenpwned.com/api/v2/breachedaccount/$EmailAddress"
-                    $Request = Invoke-RestMethod -Uri $URI -UserAgent $UserAgent
+                    $URI = "https://haveibeenpwned.com/api/v3/breachedaccount/$EmailAddress/?truncateResponse=$truncateResponse"
+                    $Request = Invoke-RestMethod -Uri $URI -UserAgent $UserAgent -Headers $headers
                 }
                 
                 catch {
@@ -80,6 +92,14 @@ Function Get-PwnedAccount {
                         Switch ($response) {
                             'The remote server returned an error: (400) Bad Request.' {
                                 Write-Error -Message 'Bad Request - the account does not comply with an acceptable format.'
+                            }
+                            # Windows PowerShell 401 response
+                            'The remote server returned an error: (401) Unauthorized.' {
+                                Write-Error -Message 'Response status code does not indicate success: 401 (Unauthorized).'
+                            }
+                                # PowerShell Core 401 response
+                            'Response status code does not indicate success: 401 (Unauthorized).' {
+                                Write-Error -Message 'Response status code does not indicate success: 401 (Unauthorized).'
                             }
                             'The remote server returned an error: (403) Forbidden.' {
                                 Write-Error -Message 'Forbidden - no user agent has been specified in the request.'
@@ -119,8 +139,8 @@ Function Get-PwnedAccount {
                     try { 
                         
                         $emailAddress = $email.accounts
-                        $URI = "https://haveibeenpwned.com/api/v2/breachedaccount/$EmailAddress"
-                        $Request = Invoke-RestMethod -Uri $URI -UserAgent $UserAgent
+                        $URI = "https://haveibeenpwned.com/api/v3/breachedaccount/$EmailAddress"
+                        $Request = Invoke-RestMethod -Uri $URI -UserAgent $UserAgent -Headers $headers
                         foreach ($result in $request) { 
                             $breach = $result.title
                             $response = New-Object PSObject -Property @{
@@ -143,7 +163,15 @@ Function Get-PwnedAccount {
                                 'The remote server returned an error: (400) Bad Request.' {
                                     Write-Error -Message 'Bad Request - the account does not comply with an acceptable format.'
                                 }
-                                'The remote server returned an error: (403) Forbidden.' {
+                                # Windows PowerShell 401 response
+                                'The remote server returned an error: (401) Unauthorized.' {
+                                    Write-Error -Message 'Response status code does not indicate success: 401 (Unauthorized).'
+                                }
+                                # PowerShell Core 401 response
+                                'Response status code does not indicate success: 401 (Unauthorized).' {
+                                    Write-Error -Message 'Response status code does not indicate success: 401 (Unauthorized).'
+                                }
+                                    'The remote server returned an error: (403) Forbidden.' {
                                     Write-Error -Message 'Forbidden - no user agent has been specified in the request.'
                                 }
                                 # Windows PowerSHell 404 response

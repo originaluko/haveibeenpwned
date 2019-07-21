@@ -3,12 +3,15 @@ HaveIBeenPwned
 
 Identify pwned accounts and passwords via the "Have I been pwned?" (https://haveibeenpwned.com) API.
 
+This module has been updated to the HIBP v3 API which now requires authorisation in the form of an API Key.
+https://haveibeenpwned.com/API/v3#APIVersion
+
 # Requirements
 
 At a minimum, make sure you have installed the following:
 
 1. Windows PowerShell 3+ or PowerShell Core
-2. (optional) [Windows Management Framework 5.0](https://www.microsoft.com/en-us/download/details.aspx?id=50395)
+2. (optional) [Windows Management Framework 5.1](https://www.microsoft.com/en-us/download/details.aspx?id=54616)
 
 # Installation & Execution
 
@@ -27,12 +30,15 @@ Module can be installed from the PowerShellGalley (requires PowerShell 5+)
 
 # Usage Instructions
 
+HIBP v3 API now `requires` the use of an API Key.  Make sure you are using one.
+The API Key can be stored as a variable and specified with the -apiKey parameter.
+
 Examples:
 
-Get-PwnedAccount -EmailAdddress email@domain.com
+Get-PwnedAccount -EmailAdddress email@domain.com -apiKey "xxxxxxxxxxxxxxx"
 Retuns all accounts that have been pwned via the supplied email address / username.
 
-Get-PwnedAccount -csv c:\temp\emailaddress.csv 
+Get-PwnedAccount -csv c:\temp\emailaddress.csv -apiKey "xxxxxxxxxxxxxxx"
 Imports a list of email addresses in csv format.  Each email address being a seperate row.
 
 Get-PwnedPassword -Password monkey
@@ -47,7 +53,7 @@ Identifies if the SHA1 hash of the password has been found.
 
 # Future
 
-Improve error handling
+Testing with an API Key!
 
 # Issues
 

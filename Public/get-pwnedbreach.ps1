@@ -3,7 +3,7 @@ Function Get-PwnedBreach {
     <#
             .SYNOPSIS
             Report breached sites via the https://haveibeenpwned.com API service.
- 
+
             .DESCRIPTION
             Report breached sites via the https://haveibeenpwned.com API service.
 
@@ -17,7 +17,7 @@ Function Get-PwnedBreach {
 
             .INPUTS
             None
- 
+
             .NOTES
             Author:  Mark Ukotic
             Website: http://blog.ukotic.net
@@ -31,13 +31,14 @@ Function Get-PwnedBreach {
     
     Begin {
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        $URI = 'https://haveibeenpwned.com/api/v2/breaches'
+        $userAgent = "HaveIBeenPwned Powershell Module"
+        $URI = 'https://haveibeenpwned.com/api/v3/breaches'
     }
     
     Process {
 
         try {
-            $Request = Invoke-RestMethod -Uri $URI
+            $Request = Invoke-RestMethod -Uri $URI -UserAgent $userAgent
         }
         catch {
             $errorDetails = $null

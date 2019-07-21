@@ -3,7 +3,7 @@ function Get-PwnedPasteAccount {
     <#
             .SYNOPSIS
             Report all pastes of an account via the https://haveibeenpwned.com API service.
- 
+
             .DESCRIPTION
             Report all pastes of an account via the https://haveibeenpwned.com API service.
 
@@ -16,7 +16,7 @@ function Get-PwnedPasteAccount {
 
             .INPUTS
             None
- 
+
             .NOTES
             Author:  Mark Ukotic
             Website: http://blog.ukotic.net
@@ -35,20 +35,28 @@ function Get-PwnedPasteAccount {
         [ValidateScript( {
                 New-Object -TypeName System.Net.Mail.MailAddress -ArgumentList @($_)
             })]
-        [string]$EmailAddress
+        [string]$EmailAddress,
+
+        [ValidatePattern('\w')]
+        [string]$UserAgent = "HaveIBeenPwned Powershell Module",
+
+        [ValidatePattern('\w')]
+        [string]$apiKey
     )
 
 
     Begin {
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+        $headers = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
+        $headers.Add("hibp-api-key", $apiKey)
     }
     
     Process {
 
         try {
             $EmailAddress = (New-Object -TypeName System.Net.Mail.MailAddress -ArgumentList @($EmailAddress)).Address
-            $URI = "https://haveibeenpwned.com/api/v2/pasteaccount/$EmailAddress"
-            $Request = Invoke-RestMethod -Uri $URI
+            $URI = "https://haveibeenpwned.com/api/v3/pasteaccount/$EmailAddress"
+            $Request = Invoke-RestMethod -Uri $URI -UserAgent $userAgent -Headers $headers
         }
         catch {
             $errorDetails = $null

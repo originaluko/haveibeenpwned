@@ -3,7 +3,7 @@ function Get-PwnedDataClass {
     <#
             .SYNOPSIS
             Returns all Data Classes available via the https://haveibeenpwned.com API service.
- 
+
             .DESCRIPTION
             Returns all Data Classes available via the https://haveibeenpwned.com API service.
 
@@ -17,7 +17,7 @@ function Get-PwnedDataClass {
 
             .INPUTS
             None
- 
+
             .NOTES
             Author:  Mark Ukotic
             Website: http://blog.ukotic.net
@@ -31,13 +31,14 @@ function Get-PwnedDataClass {
     
     Begin {
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        $URI = "https://haveibeenpwned.com/api/v2/dataclasses"
+        $userAgent = "HaveIBeenPwned Powershell Module"
+        $URI = "https://haveibeenpwned.com/api/v3/dataclasses"
     }
-   
+
     Process {
-   
+
         try {
-            $Request = Invoke-RestMethod -Uri $URI
+            $Request = Invoke-RestMethod -Uri $URI -UserAgent $userAgent
         }
         catch {
             $errorDetails = $null
