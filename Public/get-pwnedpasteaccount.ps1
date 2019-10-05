@@ -10,8 +10,10 @@ function Get-PwnedPasteAccount {
             This function queries the https://haveibeenpwned.com API service created by Troy Hunt (@troyhunt)
             and reports all pastres of the account along with the source and occurances. 
 
+            This function requires the use of an API key!
+
             .EXAMPLE
-            Get-PwnedPasteAccount -EmailAdddress email@domain.com
+            Get-PwnedPasteAccount -EmailAdddress email@domain.com -apiKey "hibp-api-key"
             Retuns all pastes of the account along with the source and occurances
 
             .INPUTS

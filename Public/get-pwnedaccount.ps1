@@ -10,6 +10,8 @@ Function Get-PwnedAccount {
             This function queries the https://haveibeenpwned.com API service created by Troy Hunt (@troyhunt)
             and reports whether the account (email address / username) specified has been found (pwned). 
 
+            This function requires the use of an API key!
+
             .EXAMPLE
             Get-PwnedAccount -EmailAdddress email@domain.com -apiKey "hibp-api-key"
             Retuns all accounts that have been pwned via the supplied email address / username.
@@ -25,6 +27,10 @@ Function Get-PwnedAccount {
             .EXAMPLE
             Get-PwnedAccount -csv c:\temp\emailaddress.csv -apiKey "hibp-api-key"
             Imports a list of email addresses in csv format.  Each email address being a seperate row.
+
+            .EXAMPLE
+            Get-PwnedAccount -csv c:\temp\emailaddress.csv -apiKey "hibp-api-key" -RateLimit 2000
+            Set a rate-limit of 2000 milliseconds (2 seconds) instead of the default 1500 milliseconds.
 
             .INPUTS
             None
@@ -51,6 +57,9 @@ Function Get-PwnedAccount {
 
         [Parameter(Mandatory, ParameterSetName = 'csv')]
         [System.IO.FileInfo]$CSV,
+
+        [Parameter(ParameterSetName = 'csv')]
+        [int]$RateLimit = 1500,
 
         [ValidatePattern('\w')]
         [string]$UserAgent = "HaveIBeenPwned Powershell Module",
@@ -137,9 +146,8 @@ Function Get-PwnedAccount {
                 $csvImport = Import-Csv -Path $CSV -Header "Accounts"
                 foreach ($email in $csvImport) {
                     try { 
-                        
                         $emailAddress = $email.accounts
-                        $URI = "https://haveibeenpwned.com/api/v3/breachedaccount/$EmailAddress"
+                        $URI = "https://haveibeenpwned.com/api/v3/breachedaccount/$EmailAddress/?truncateResponse=false"
                         $Request = Invoke-RestMethod -Uri $URI -UserAgent $UserAgent -Headers $headers
                         foreach ($result in $request) { 
                             $breach = $result.title
@@ -148,8 +156,9 @@ Function Get-PwnedAccount {
                                 'Breach'      = "$breach"
                                 'Description' = 'Email address found in breach'
                             }
-                            $response
+                        $response
                         }
+                        Start-Sleep -Milliseconds $RateLimit
                     }   
                     catch {
                         $errorDetails = $null

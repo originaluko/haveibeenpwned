@@ -51,6 +51,9 @@ Identifies if the password, in the SecureString variable $Password, has been fou
 Get-PwnedPassword -SHA1 AB87D24BDC7452E55738DEB5F868E1F16DEA5ACE
 Identifies if the SHA1 hash of the password has been found.
 
+Further examples for each function can be found by typing
+Get-Help {function name} -Examples
+
 # Future
 
 Testing with an API Key!
