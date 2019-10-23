@@ -158,7 +158,7 @@ Function Get-PwnedAccount {
                             }
                         $response
                         }
-                        Start-Sleep -Milliseconds $RateLimit
+                    Start-Sleep -Milliseconds $RateLimit
                     }   
                     catch {
                         $errorDetails = $null
@@ -199,6 +199,7 @@ Function Get-PwnedAccount {
                         else {
                             Write-error -Message ('Request to "{0}" failed: {1}' -f $uri, $errorDetails)
                         }
+                    Start-Sleep -Milliseconds $RateLimit
                     }
                 }
             }
