@@ -6,6 +6,9 @@ Identify pwned accounts and passwords via the "Have I been pwned?" (https://have
 This module has been updated to the HIBP v3 API which now requires authorisation in the form of an API Key.
 https://haveibeenpwned.com/API/v3#APIVersion
 
+Use of some of these functions requires an API key.  This module does not come with an API key.
+An API key can be obtained from https://haveibeenpwned.com/API/Key
+
 # Requirements
 
 At a minimum, make sure you have installed the following:
@@ -42,14 +45,17 @@ Get-PwnedAccount -csv c:\temp\emailaddress.csv -apiKey "xxxxxxxxxxxxxxx"
 Imports a list of email addresses in csv format.  Each email address being a seperate row.
 
 Get-PwnedPassword -Password monkey
-Identifies if the password has been found.
+Identifies if the password has been found. *No API key required
+
+Get-PwnedPassword -Password monkey -Padding false
+Identifies if the password has been found with response padding removed. *No API key required
 
 $Password = Read-host -AsSecureString
 Get-PwnedPassword -SecureString $Password
 Identifies if the password, in the SecureString variable $Password, has been found
 
 Get-PwnedPassword -SHA1 AB87D24BDC7452E55738DEB5F868E1F16DEA5ACE
-Identifies if the SHA1 hash of the password has been found.
+Identifies if the SHA1 hash of the password has been found. *No API key required
 
 Further examples for each function can be found by typing
 Get-Help {function name} -Examples
@@ -62,6 +68,10 @@ Testing with an API Key!
 
 The HIBP API now requires the use of a UserAgent.  Old versions didn't specify this by default.
 Always make sure you're running the latest version.  
+
+If using the CSV import functionality of Get-PwnedAccount.  The default 1500 millisecond delay
+between checking pwned accounts may not be large enough and cause rate-limiting.  Increasing
+the rate limit can be achieved with parameter "RateLimit" and increasing the value above 1500.
 
 # Licensing
 

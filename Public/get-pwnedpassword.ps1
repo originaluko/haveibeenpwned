@@ -3,7 +3,7 @@ function Get-PwnedPassword {
     <#
             .SYNOPSIS
             Report if an password has been found via the https://haveibeenpwned.com API service.
- 
+
             .DESCRIPTION
             Report if an passsword has been found via the https://haveibeenpwned.com API service.
 
@@ -15,9 +15,16 @@ function Get-PwnedPassword {
             Passwords, encrypted or cleartext, are SHA1 hashed and only the first 5 characters posted
             back to https://haveibeenpwned.com
 
+            By default "padding" is enabled which will return additional random hashes to vary the response
+            payload size.  Padding can be disabled using the parameter "Padding" and setting it to "false".
+
             .EXAMPLE
             Get-PwnedPassword -Password monkey
             Identifies if the password has been found.
+
+            .EXAMPLE
+            Get-PwnedPassword -Password monkey -Padding false
+            Identifies if the password has been found with response padding removed.
 
             .EXAMPLE
             Get-PwnedPassword -SHA1 AB87D24BDC7452E55738DEB5F868E1F16DEA5ACE
@@ -26,16 +33,16 @@ function Get-PwnedPassword {
             .EXAMPLE
             $Password = Read-host -AsSecureString
             Get-PwnedPassword -SecureString $Password
-            Identifies if the password, in the SecureString variable $Password, has been found
+            Identifies if the password, in the SecureString variable $Password, has been found.
 
             .EXAMPLE 
             $password = ConvertTo-SecureString "monkey" -asplaintext -force
             get-pwnedpassword -SecureString $password
-            Identifies if the password, in the SecureString variable $Password, has been found
+            Identifies if the password, in the SecureString variable $Password, has been found.
             
             .INPUTS
             None
- 
+
             .NOTES
             Author:  Mark Ukotic
             Website: http://blog.ukotic.net
@@ -58,7 +65,10 @@ function Get-PwnedPassword {
         
         [Parameter(Mandatory, ParameterSetName = 'SHA1')]
         [ValidatePattern('^[0-9A-F]{40}$')]
-        [string]$SHA1
+        [string]$SHA1,
+
+        [ValidateSet("false","true")]
+        [string]$Padding = "true"
     )
 
 
@@ -66,6 +76,8 @@ function Get-PwnedPassword {
 
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
         $baseURI = "https://api.pwnedpasswords.com/range/"
+        $headers = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
+        $headers.Add("Add-Padding", $Padding)
         function Hash($textToHash) {      
             $hasher = New-Object -TypeName "System.Security.Cryptography.SHA1CryptoServiceProvider"
             $toHash = [System.Text.Encoding]::UTF8.GetBytes($textToHash)
