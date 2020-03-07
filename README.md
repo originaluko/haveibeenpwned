@@ -38,26 +38,26 @@ The API Key can be stored as a variable and specified with the -apiKey parameter
 
 Examples:
 
-Get-PwnedAccount -EmailAdddress email@domain.com -apiKey "xxxxxxxxxxxxxxx"
+Get-PwnedAccount -EmailAdddress email@domain.com -apiKey "xxxxxxxxxxxxxxx"\
 Retuns all accounts that have been pwned via the supplied email address / username.
 
-Get-PwnedAccount -csv c:\temp\emailaddress.csv -apiKey "xxxxxxxxxxxxxxx"
+Get-PwnedAccount -csv c:\temp\emailaddress.csv -apiKey "xxxxxxxxxxxxxxx"\
 Imports a list of email addresses in csv format.  Each email address being a seperate row.
 
-Get-PwnedPassword -Password monkey
+Get-PwnedPassword -Password monkey\
 Identifies if the password has been found. *No API key required
 
-Get-PwnedPassword -Password monkey -Padding false
+Get-PwnedPassword -Password monkey -Padding false\
 Identifies if the password has been found with response padding removed. *No API key required
 
-$Password = Read-host -AsSecureString
+$Password = Read-host -AsSecureString\
 Get-PwnedPassword -SecureString $Password
 Identifies if the password, in the SecureString variable $Password, has been found
 
-Get-PwnedPassword -SHA1 AB87D24BDC7452E55738DEB5F868E1F16DEA5ACE
+Get-PwnedPassword -SHA1 AB87D24BDC7452E55738DEB5F868E1F16DEA5ACE\
 Identifies if the SHA1 hash of the password has been found. *No API key required
 
-Further examples for each function can be found by typing
+Further examples for each function can be found by typing\
 Get-Help {function name} -Examples
 
 # Future
