@@ -115,7 +115,7 @@ Function Get-PwnedAccount {
                             }
                             # Windows PowerShell 404 response
                             'The remote server returned an error: (404) Not Found.' {
-                                $response = New-Object PSObject -Property @{
+                                $response = [PSCustomObject]@{
                                     'Account Exists' = 'False'
                                     'Status'         = 'Good'
                                     'Description'    = 'Email address not found.'
@@ -123,7 +123,7 @@ Function Get-PwnedAccount {
                             }
                             # PowerShell Core 404 response
                             'Response status code does not indicate success: 404 (Not Found).' {
-                                $response = New-Object PSObject -Property @{
+                                $response = [PSCustomObject]@{
                                     'Account Exists' = 'False'
                                     'Status'         = 'Good'
                                     'Description'    = 'Email address not found.'
@@ -151,10 +151,20 @@ Function Get-PwnedAccount {
                         $Request = Invoke-RestMethod -Uri $URI -UserAgent $UserAgent -Headers $headers
                         foreach ($result in $request) { 
                             $breach = $result.title
-                            $response = New-Object PSObject -Property @{
-                                'Email'       = "$emailAddress"
-                                'Breach'      = "$breach"
-                                'Description' = 'Email address found in breach'
+                            $breachDate = $result.BreachDate
+                            $breachAddedDate = $result.AddedDate
+                            $breachModifiedDate = $result.ModifiedDate
+                            $pwnCount = $result.pwnCount
+                            $domain = $result.domain
+                            $response = [PSCustomObject]@{
+                                'Email'             = "$emailAddress"
+                                'Breach'            = "$breach"
+                                'Domain'            = $domain
+                                'Breach Date'       = "$breachDate"
+                                'Breach Added Date' = "$breachAddedDate"
+                                'Breach Modified Date' = "$breachModifiedDate"
+                                'PwnCount'          = "$pwnCount"
+                                'Description'       = 'Email address found in breach'
                             }
                         $response
                         }
