@@ -77,7 +77,7 @@ function Get-PwnedPasteAccount {
                     }
                     # Windows PowerShell 404 response
                     'The remote server returned an error: (404) Not Found.' {
-                        $Response = New-Object PSObject -Property @{
+                        $Response = [PSCustomObject]@{
                             'Account Exists' = 'False'
                             'Status'         = 'Good'
                             'Description'    = 'Email address not found.'
@@ -85,7 +85,7 @@ function Get-PwnedPasteAccount {
                     }
                     # PowerShell Core 404 response
                     'Response status code does not indicate success: 404 (Not Found).' {
-                        $Response = New-Object PSObject -Property @{
+                        $Response = [PSCustomObject]@{
                             'Account Exists' = 'False'
                             'Status'         = 'Good'
                             'Description'    = 'Email address not found.'
