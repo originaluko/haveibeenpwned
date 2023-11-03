@@ -39,7 +39,7 @@ The API Key can be stored as a variable and specified with the -apiKey parameter
 Examples:
 
 Get-PwnedAccount -EmailAdddress email@domain.com -apiKey "xxxxxxxxxxxxxxx"\
-Retuns all accounts that have been pwned via the supplied email address / username.
+Returns all accounts that have been pwned via the supplied email address / username.
 
 Get-PwnedAccount -csv c:\temp\emailaddress.csv -apiKey "xxxxxxxxxxxxxxx"\
 Imports a list of email addresses in csv format.  Each email address being a seperate row.
